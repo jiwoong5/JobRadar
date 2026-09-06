@@ -1,0 +1,66 @@
+---
+site: saramin
+job_id: "46915677"
+url: https://www.saramin.co.kr/zf_user/jobs/relay/view?rec_idx=46915677
+company: 클라우드메쉬(주)
+title: "DevOps 엔지니어 (AWS/Kubernetes, 경력 3년 이상)"
+industry: 정보통신·IT
+location: 서울 > 송파구
+job_category: 시스템엔지니어, DevOps
+job_type: 정규직
+experience: 경력 3년 이상
+experience_min: 3
+experience_max: 99
+education: 학력무관
+salary: 면접 후 결정
+keywords: [AWS, Kubernetes, Terraform, Docker, GitHub Actions, Prometheus]
+posted_at: 2026-08-22
+expires_at: 2026-10-10
+---
+
+## 모집부문 및 자격요건
+
+- 모집분야: 클라우드 인프라 및 DevOps
+- 모집인원: 2명
+- 담당업무: SaaS 서비스 인프라 구축 및 CI/CD 파이프라인 운영
+
+## 주요업무
+
+- AWS 기반 인프라 설계 및 운영 (EKS, RDS, VPC, IAM)
+- Kubernetes 클러스터 운영 및 헬름 차트 관리
+- Terraform을 활용한 IaC 코드 작성 및 관리
+- GitHub Actions 기반 CI/CD 파이프라인 구축
+- Prometheus/Grafana 모니터링 및 알림 체계 운영
+- 인프라 비용 최적화 및 보안 정책 수립
+
+## 자격요건
+
+- 학력: 무관
+- 경력: 인프라 또는 DevOps 경력 3년 이상
+- Linux 서버 운영 및 셸 스크립트 작성 능력
+- Docker 컨테이너 빌드 및 운영 경험
+- AWS 주요 서비스 실무 운영 경험
+
+## 우대사항
+
+- CKA, AWS SAA 등 관련 자격증 보유자
+- Terraform 등 IaC 도구 운영 경험
+- 서비스 장애 대응 및 포스트모템 작성 경험
+- Python 또는 Go로 운영 자동화 도구를 만들어 본 경험
+
+## 근무조건
+
+- 근무형태: 정규직
+- 근무시간: 주 5일 10:00 ~ 19:00 (온콜 당번 로테이션)
+- 근무지역: 서울특별시 송파구 올림픽로 (잠실역 인근), 주 3회 재택 가능
+
+## 복리후생
+
+- 4대보험, 퇴직연금, 인센티브 제도
+- 클라우드 자격증 응시료 및 교육비 전액 지원
+- 장비 선택권 (맥북/윈도우 노트북)
+- 자율 휴가제
+
+## 전형절차
+
+서류전형 → 1차 기술면접 → 2차 면접 → 처우협의 → 최종합격

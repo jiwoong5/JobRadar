@@ -1,0 +1,64 @@
+---
+site: saramin
+job_id: "46912345"
+url: https://www.saramin.co.kr/zf_user/jobs/relay/view?rec_idx=46912345
+company: (주)컴앤휴먼
+title: "[부산] Python 백엔드 개발자 (신입/경력)"
+industry: 솔루션·SI·ERP·CRM
+location: 부산 > 해운대구
+job_category: 웹개발, 백엔드·서버개발
+job_type: 정규직
+experience: 신입
+experience_min: 0
+experience_max: 0
+education: 대학교졸업(2,3년)이상
+salary: 회사내규에 따름
+keywords: [Python, Django, FastAPI, PostgreSQL, AWS, REST API]
+posted_at: 2026-08-28
+expires_at: 2026-10-15
+---
+
+## 모집부문 및 자격요건
+
+- 모집분야: 백엔드 개발 (Python)
+- 모집인원: 2명
+- 담당업무: 자사 HR 매칭 플랫폼의 서버 개발 및 운영
+
+## 주요업무
+
+- Python/Django 기반 백엔드 API 설계 및 개발
+- FastAPI를 활용한 신규 마이크로서비스 구축
+- PostgreSQL 스키마 설계 및 쿼리 튜닝
+- AWS(EC2, RDS, S3) 환경에서의 서비스 배포 및 모니터링
+- 채용 데이터 수집 파이프라인 유지보수
+
+## 자격요건
+
+- 학력: 전문대졸 이상
+- 경력: 신입 지원 가능 (관련 전공 또는 부트캠프 수료자 우대)
+- Python 기본 문법 및 객체지향 프로그래밍에 대한 이해
+- 관계형 데이터베이스와 SQL에 대한 기본 지식
+- Git을 활용한 협업 경험
+
+## 우대사항
+
+- Django 또는 FastAPI로 개인 프로젝트를 완성해 본 경험
+- REST API 설계 경험
+- Docker 사용 경험
+- 부산 지역 거주자
+
+## 근무조건
+
+- 근무형태: 정규직 (수습 3개월, 급여 100% 지급)
+- 근무시간: 주 5일 09:00 ~ 18:00 (유연근무제 시행)
+- 근무지역: 부산광역시 해운대구 센텀중앙로 (센텀시티역 도보 5분)
+
+## 복리후생
+
+- 4대보험, 퇴직연금, 연차/반차, 경조휴가
+- 도서구입비 및 온라인 강의 수강료 지원 (연 50만원)
+- 점심식대 지원, 명절 선물, 생일자 조기퇴근
+
+## 전형절차
+
+서류전형 → 1차 실무면접 → 2차 임원면접 → 최종합격

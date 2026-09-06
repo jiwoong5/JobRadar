@@ -1,0 +1,65 @@
+---
+site: saramin
+job_id: "46921008"
+url: https://www.saramin.co.kr/zf_user/jobs/relay/view?rec_idx=46921008
+company: 픽셀포지(주)
+title: "React 프론트엔드 개발자 신입 채용"
+industry: 게임·엔터테인먼트
+location: 경기 > 성남시 분당구
+job_category: 웹개발, 프론트엔드
+job_type: 정규직
+experience: 신입
+experience_min: 0
+experience_max: 0
+education: 대학교졸업(2,3년)이상
+salary: 3,000만원 이상 (신입 초봉)
+keywords: [React, TypeScript, Next.js, Zustand, Tailwind CSS]
+posted_at: 2026-08-25
+expires_at: 2026-10-05
+---
+
+## 모집부문 및 자격요건
+
+- 모집분야: 웹 프론트엔드 개발
+- 모집인원: 2명
+- 담당업무: 게임 커뮤니티 플랫폼 웹 클라이언트 개발
+
+## 주요업무
+
+- React 18 / TypeScript 기반 웹 서비스 화면 개발
+- Next.js App Router를 활용한 SSR 페이지 구현
+- 디자인 시스템 컴포넌트 개발 및 스토리북 문서화
+- REST API 연동 및 상태관리(Zustand) 구현
+- 웹 접근성 및 반응형 레이아웃 대응
+
+## 자격요건
+
+- 학력: 전문대졸 이상
+- 경력: 신입 (인턴 경험자 우대)
+- HTML/CSS/JavaScript에 대한 탄탄한 기본기
+- React를 사용한 프로젝트 경험 (개인/팀 프로젝트 무관)
+- Git 기반 협업 경험
+
+## 우대사항
+
+- TypeScript 사용 경험
+- Next.js 사용 경험
+- Figma 디자인 시안 해석 능력
+- 게임에 대한 이해와 관심
+
+## 근무조건
+
+- 근무형태: 정규직 (수습 3개월)
+- 근무시간: 주 5일 10:00 ~ 19:00 (자율 출퇴근제)
+- 근무지역: 경기도 성남시 분당구 판교역로 (판교역 도보 7분)
+
+## 복리후생
+
+- 4대보험, 퇴직연금, 스톡옵션 부여 검토
+- 최신 사양 장비(맥북 프로) 지급, 듀얼 모니터
+- 점심/저녁 식대 지원, 사내 스낵바 무제한
+- 월 1회 리프레시 데이
+
+## 전형절차
+
+서류전형 → 과제전형 → 1차 실무면접 → 2차 컬처핏 면접 → 최종합격

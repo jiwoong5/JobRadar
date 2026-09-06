@@ -1,0 +1,65 @@
+---
+site: saramin
+job_id: "46887520"
+url: https://www.saramin.co.kr/zf_user/jobs/relay/view?rec_idx=46887520
+company: 블루웨이브데이터(주)
+title: "[부산] MS-SQL DBA 모집 (경력무관)"
+industry: 솔루션·SI·ERP·CRM
+location: 부산 > 수영구
+job_category: DBA, 데이터베이스운영
+job_type: 정규직
+experience: 경력무관
+experience_min: 0
+experience_max: 99
+education: 학력무관
+salary: 회사내규에 따름
+keywords: [MS-SQL, MSSQL, T-SQL, SQL Server, 프로시저, 데이터베이스]
+posted_at: 2026-09-01
+expires_at: 2026-11-30
+---
+
+## 모집부문 및 자격요건
+
+- 모집분야: 데이터베이스 관리 (DBA)
+- 모집인원: 1명
+- 담당업무: 물류 관제 시스템의 MS-SQL 데이터베이스 운영 및 관리
+
+## 주요업무
+
+- MS-SQL Server 2019/2022 인스턴스 설치, 구성, 운영
+- T-SQL 저장 프로시저 및 트리거 작성/유지보수
+- 인덱스 설계 및 실행계획 분석을 통한 쿼리 성능 개선
+- 백업/복구 정책 수립 및 정기 복구 훈련
+- Always On 가용성 그룹 구성 및 장애 대응
+
+## 자격요건
+
+- 학력: 무관
+- 경력: 무관 (신입도 지원 가능하며, 교육 후 실무 투입)
+- SQL 기본 문법 이해 (SELECT, JOIN, GROUP BY 수준)
+- 야간 장애 대응에 대한 협조 가능자
+
+## 우대사항
+
+- MS-SQL 또는 SQL Server 실무 운영 경험자
+- T-SQL 프로시저 작성 경험
+- SQLD, SQLP 자격증 보유자
+- Oracle, MySQL 등 타 DBMS 경험자
+- 부산·경남 지역 거주자
+
+## 근무조건
+
+- 근무형태: 정규직 (수습 3개월)
+- 근무시간: 주 5일 09:00 ~ 18:00 (월 1회 야간 정기점검 당직)
+- 근무지역: 부산광역시 수영구 광안로
+
+## 복리후생
+
+- 4대보험, 퇴직금, 연차수당
+- 자격증 취득 시 수당 지급 (SQLD 월 5만원, SQLP 월 10만원)
+- 중식 제공, 야근 시 석식 및 교통비 지원
+- 정기 교육 프로그램 운영
+
+## 전형절차
+
+서류전형 → 실무진 면접 → 최종합격 (상시채용)

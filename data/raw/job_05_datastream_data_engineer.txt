@@ -1,0 +1,65 @@
+---
+site: saramin
+job_id: "46898744"
+url: https://www.saramin.co.kr/zf_user/jobs/relay/view?rec_idx=46898744
+company: (주)데이터스트림랩스
+title: "데이터 엔지니어 (Python/Spark, 경력 2~4년)"
+industry: 정보통신·IT
+location: 서울 > 마포구
+job_category: 데이터엔지니어, 빅데이터
+job_type: 정규직
+experience: 경력 2~4년
+experience_min: 2
+experience_max: 4
+education: 대학교졸업(4년)이상
+salary: 면접 후 결정
+keywords: [Python, Spark, Airflow, Kafka, Snowflake, ETL]
+posted_at: 2026-08-18
+expires_at: 2026-09-25
+---
+
+## 모집부문 및 자격요건
+
+- 모집분야: 데이터 플랫폼 엔지니어링
+- 모집인원: 2명
+- 담당업무: 커머스 데이터 파이프라인 설계 및 운영
+
+## 주요업무
+
+- Python 기반 ETL/ELT 파이프라인 개발 및 운영
+- Apache Spark를 활용한 대용량 배치 처리 잡 개발
+- Airflow DAG 설계 및 스케줄링 운영
+- Kafka 스트리밍 데이터 수집 파이프라인 구축
+- Snowflake 데이터 웨어하우스 모델링 및 비용 최적화
+
+## 자격요건
+
+- 학력: 대졸 이상
+- 경력: 데이터 엔지니어링 경력 2년 이상 4년 이하
+- Python을 활용한 데이터 처리 실무 경험
+- SQL 능숙자 (윈도우 함수, CTE 활용 수준)
+- 분산 처리 프레임워크(Spark, Flink 등) 사용 경험
+
+## 우대사항
+
+- Airflow 운영 및 커스텀 오퍼레이터 개발 경험
+- dbt 사용 경험
+- AWS 또는 GCP 데이터 서비스 운영 경험
+- 데이터 품질 모니터링 체계 구축 경험
+
+## 근무조건
+
+- 근무형태: 정규직
+- 근무시간: 주 5일 09:30 ~ 18:30 (주 2회 재택근무 가능)
+- 근무지역: 서울특별시 마포구 양화로 (홍대입구역 인근)
+
+## 복리후생
+
+- 4대보험, 퇴직연금, 성과급 연 1회
+- 자기계발비 월 20만원 지원
+- 컨퍼런스 참가비 및 도서비 지원
+- 리프레시 휴가 (3년 근속 시 2주)
+
+## 전형절차
+
+서류전형 → 기술과제 → 1차 기술면접 → 2차 면접 → 처우협의 → 최종합격

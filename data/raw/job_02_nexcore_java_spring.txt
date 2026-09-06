@@ -1,0 +1,65 @@
+---
+site: saramin
+job_id: "46903112"
+url: https://www.saramin.co.kr/zf_user/jobs/relay/view?rec_idx=46903112
+company: 넥스코어시스템(주)
+title: "Java/Spring 백엔드 개발자 (경력 3~5년)"
+industry: 금융·보험·증권
+location: 서울 > 강남구
+job_category: 웹개발, 백엔드·서버개발
+job_type: 정규직
+experience: 경력 3~5년
+experience_min: 3
+experience_max: 5
+education: 대학교졸업(4년)이상
+salary: 면접 후 결정
+keywords: [Java, Spring Boot, JPA, Oracle, Kafka, MSA]
+posted_at: 2026-08-20
+expires_at: 2026-09-30
+---
+
+## 모집부문 및 자격요건
+
+- 모집분야: 금융 코어시스템 백엔드 개발
+- 모집인원: 3명
+- 담당업무: 증권사 차세대 트레이딩 플랫폼 개발
+
+## 주요업무
+
+- Java 17 / Spring Boot 3.x 기반 백엔드 서비스 개발
+- JPA 및 QueryDSL을 활용한 도메인 모델링
+- Oracle 대용량 트랜잭션 처리 및 성능 최적화
+- Kafka 기반 비동기 이벤트 처리 파이프라인 설계
+- 모놀리식 레거시의 MSA 전환 과제 참여
+
+## 자격요건
+
+- 학력: 대졸 이상
+- 경력: Java 백엔드 개발 경력 3년 이상 5년 이하
+- Spring Framework 및 Spring Boot 실무 개발 경험
+- JPA 등 ORM 사용 경험과 SQL 튜닝 경험
+- 대용량 트래픽 서비스 운영 경험
+
+## 우대사항
+
+- 금융권 프로젝트 수행 경험
+- Kafka, RabbitMQ 등 메시지 브로커 운영 경험
+- 정보처리기사 자격 보유자
+- 컨테이너 오케스트레이션(Kubernetes) 이해
+
+## 근무조건
+
+- 근무형태: 정규직
+- 근무시간: 주 5일 08:30 ~ 17:30
+- 근무지역: 서울특별시 강남구 테헤란로 (역삼역 인근)
+
+## 복리후생
+
+- 4대보험, 퇴직연금(DC), 장기근속 포상
+- 자격증 취득 지원 및 응시료 전액 지원
+- 연 1회 종합건강검진, 단체상해보험
+- 사내 카페테리아 운영
+
+## 전형절차
+
+서류전형 → 코딩테스트 → 1차 기술면접 → 2차 인성면접 → 처우협의

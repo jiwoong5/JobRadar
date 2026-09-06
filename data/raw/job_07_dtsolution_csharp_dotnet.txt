@@ -1,0 +1,66 @@
+---
+site: saramin
+job_id: "46875190"
+url: https://www.saramin.co.kr/zf_user/jobs/relay/view?rec_idx=46875190
+company: 디티솔루션(주)
+title: "C#/.NET 개발자 (경력 5년 이상)"
+industry: 기계·설비·자동차
+location: 대전 > 유성구
+job_category: 응용프로그램개발, 시스템개발
+job_type: 정규직
+experience: 경력 5년 이상
+experience_min: 5
+experience_max: 99
+education: 대학교졸업(2,3년)이상
+salary: 면접 후 결정
+keywords: [C#, .NET, WPF, MS-SQL, MSSQL, WinForms, 제조MES]
+posted_at: 2026-08-12
+expires_at: 2026-09-19
+---
+
+## 모집부문 및 자격요건
+
+- 모집분야: 제조 MES 응용프로그램 개발
+- 모집인원: 2명
+- 담당업무: 반도체 장비사 MES/SPC 시스템 구축 및 유지보수
+
+## 주요업무
+
+- C# .NET Framework / .NET 8 기반 응용프로그램 개발
+- WPF 및 WinForms를 활용한 데스크톱 UI 개발
+- MS-SQL 데이터베이스 설계 및 저장 프로시저 개발
+- 장비 인터페이스(SECS/GEM) 연동 모듈 개발
+- 고객사 현장 이슈 대응 및 기술 지원
+
+## 자격요건
+
+- 학력: 전문대졸 이상
+- 경력: C# 개발 경력 5년 이상
+- .NET 기반 애플리케이션 개발 및 배포 경험
+- MS-SQL 사용 경험 (T-SQL 프로시저 작성 가능자)
+- 고객사 상주 근무 가능자
+
+## 우대사항
+
+- 제조 MES / SPC 시스템 구축 경험
+- WPF MVVM 패턴 적용 경험
+- MS-SQL 성능 튜닝 경험
+- 반도체·디스플레이 산업 도메인 이해
+- 영어 문서 독해 가능자
+
+## 근무조건
+
+- 근무형태: 정규직
+- 근무시간: 주 5일 08:30 ~ 17:30
+- 근무지역: 대전광역시 유성구 테크노중앙로 (고객사 상주 근무 발생)
+
+## 복리후생
+
+- 4대보험, 퇴직연금, 장기근속 포상
+- 상주 근무 시 숙소 및 출장비 지원
+- 자녀 학자금 지원, 경조사비
+- 연 1회 건강검진
+
+## 전형절차
+
+서류전형 → 실무면접 → 임원면접 → 처우협의 → 입사
