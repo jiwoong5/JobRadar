@@ -1,0 +1,27 @@
+# 환경변수 / 비밀키 - 절대 커밋 금지
+.env
+.env.local
+.token
+*.token
+.netrc
+
+# 가상환경
+.venv/
+venv/
+env/
+
+# 벡터 인덱스 (재생성 가능, 바이너리라 diff 무의미)
+storage/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# IDE / OS
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini
