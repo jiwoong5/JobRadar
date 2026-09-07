@@ -11,7 +11,7 @@
 """
 
 from __future__ import annotations
-
+   
 from langchain_anthropic import ChatAnthropic
 from langchain_core.documents import Document
 from langchain_core.output_parsers import StrOutputParser
@@ -47,6 +47,11 @@ def format_docs(docs: list[Document]) -> str:
     "## 우대사항" 한복판에서 잘리면 본문만으로는 어느 회사인지 알 수 없어,
     LLM 이 출처를 제대로 말할 수 없기 때문입니다.
     """
+    # 2단계: 필터가 아무것도 남기지 않으면 빈 블록이 됩니다. 그대로 두면 LLM이
+    # 무엇을 근거로 답해야 할지 몰라 흔들리므로, 없다는 사실을 명시해 줍니다.
+    if not docs:
+        return "(조건에 맞는 공고가 없습니다.)"
+
     blocks = []
     for i, doc in enumerate(docs, start=1):
         meta = doc.metadata
@@ -67,9 +72,17 @@ def get_llm() -> ChatAnthropic:
     return ChatAnthropic(model=CHAT_MODEL, max_tokens=MAX_TOKENS)
 
 
-def build_chain(k: int = TOP_K) -> Runnable:
-    """질문(str) -> {question, context, answer} 를 돌려주는 RAG 체인."""
-    retriever = load_vectorstore().as_retriever(search_kwargs={"k": k})
+def build_chain(k: int = TOP_K, where: dict | None = None) -> Runnable:
+    """질문(str) -> {question, context, answer} 를 돌려주는 RAG 체인.
+
+    2단계: `where`를 주면 Chroma가 **벡터를 훑기 전에** 후보를 줄입니다
+    (사전 필터링). 검색 후 파이썬에서 거르는 방식과 달리 k개를 온전히 채웁니다.
+    """
+    search_kwargs: dict = {"k": k}
+    if where:
+        # langchain_chroma는 이 값을 그대로 Chroma의 where 절로 넘깁니다.
+        search_kwargs["filter"] = where
+    retriever = load_vectorstore().as_retriever(search_kwargs=search_kwargs)
 
     # 검색된 Document 를 프롬프트 변수로 변환하는 작은 체인.
     # dict 리터럴은 LCEL 에서 자동으로 RunnableParallel 로 바뀝니다.
@@ -89,5 +102,5 @@ def build_chain(k: int = TOP_K) -> Runnable:
     ) | RunnablePassthrough.assign(answer=answer_chain)
 
 
-def ask(question: str, k: int = TOP_K) -> dict:
-    return build_chain(k=k).invoke(question)
+def ask(question: str, k: int = TOP_K, where: dict | None = None) -> dict:
+    return build_chain(k=k, where=where).invoke(question)

@@ -39,7 +39,26 @@ python -m jobradar ingest
 # 5) 질문
 python -m jobradar ask "Python 쓰는 곳 어디야?"
 python -m jobradar ask "부산에서 신입으로 갈 수 있는 데 있어?" --show-chunks
+
+# 6) 메타데이터 필터 (2단계)
+python -m jobradar facets                       # 필터에 쓸 수 있는 값 목록
+python -m jobradar ask "어떤 회사가 있어?" --city 부산 --exp 0
+python -m jobradar ask "곧 마감되는 공고는?" --deadline-before 2026-09-20
+python -m jobradar ask "요약해줘" --category 백엔드 --onsite --show-filter
 ```
+
+### 필터 옵션
+
+| 옵션 | 의미 | 예 |
+|---|---|---|
+| `--city` / `--district` | 근무지 시도 / 시군구 | `--city 부산` |
+| `--remote` / `--onsite` | 재택 여부 | `--remote` |
+| `--company` | 회사명 (일부만 써도 됨) | `--company 컴앤휴먼` |
+| `--category` | 직무 (일부만 써도 됨) | `--category 백엔드` |
+| `--exp N` | 경력 N년으로 지원 가능한 공고 | `--exp 0` (신입) |
+| `--open-only` | 오늘 기준 마감 전 | |
+| `--deadline-before` | 이 날짜까지 마감 | `--deadline-before 2026-09-20` |
+| `--show-filter` | 생성된 Chroma `where` 절 출력 | |
 
 ## 파이프라인
 
@@ -92,7 +111,7 @@ expires_at: 2026-10-15
 ## 로드맵
 
 - [x] **1단계** 청킹 + 임베딩 + 출처 표시 Q&A
-- [ ] **2단계** 메타데이터 필터 검색 (`부산 + 신입`)
+- [x] **2단계** 메타데이터 필터 검색 (`부산 + 신입`)
 - [ ] **3단계** BM25 하이브리드 + 크로스인코더 리랭킹
 - [ ] **4단계** PDF / HTML / JSON 멀티 소스
 
@@ -100,8 +119,15 @@ expires_at: 2026-10-15
 
 - **`temperature=0` 넣으면 터진다.** Claude Opus 5는 `temperature`/`top_p`를
   받지 않습니다 (400). LangChain 예제엔 거의 항상 들어 있어서 그대로 베끼면 막힙니다.
-- **Chroma 메타데이터에 list를 못 넣는다.** YAML이 `keywords: [A, B]`를 list로,
-  `posted_at: 2026-08-28`을 date 객체로 파싱해서 그대로 넣으면 저장에서 실패합니다.
+- **Chroma 메타데이터 타입 제약은 버전에 따라 다르다.** chromadb 1.5.9에서 직접
+  확인해 보니 `["A", "B"]` 같은 **동종 리스트는 통과**하고(그래서 2단계에서
+  `job_categories`를 리스트로 저장합니다), 실제로 막히는 건 `date` 객체와 `None`입니다.
+  YAML이 `posted_at: 2026-08-28`을 date로 파싱하므로 `_scalarize()`는 여전히 필요합니다.
+- **Chroma `where` 절에는 부분 문자열 매칭이 없다.** `$contains`는 리스트 필드의
+  **원소 정확 일치**로만 동작합니다 — `["웹개발", "백엔드·서버개발"]`에 `$contains "백엔드"`는
+  0건입니다. 그래서 "백엔드" → "백엔드·서버개발" 해석은 `filters.py`가 파이썬에서 하고,
+  Chroma에는 정확한 값만 넘깁니다. `$gte`/`$lte`도 숫자 전용이라 `expires_at_num`(YYYYMMDD)을
+  따로 만듭니다.
 - **`TextLoader(encoding="utf-8")` 필수.** Windows 기본이 cp949라 한글이 깨집니다.
 - **frontmatter 키를 `source:`로 쓰면 안 된다.** `TextLoader`가 `metadata["source"]`에
   파일 경로를 넣어서 덮어씁니다. `site:`로 이름을 바꿨습니다.

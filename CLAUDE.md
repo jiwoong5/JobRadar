@@ -6,8 +6,8 @@ LangChain 개념 학습용 RAG 프로젝트. 소스는 GitHub, 학습 내용은 
 
 | 단계 | 목표 | 상태 |
 |---|---|---|
-| 1 | 텍스트 공고 10개 → 청킹 → 임베딩 → 질문하면 관련 청크로 답변 + **출처 표시** | 진행 중 |
-| 2 | 메타데이터(회사/직무/근무지/마감일/경력)를 붙여 **필터 검색** | 예정 |
+| 1 | 텍스트 공고 10개 → 청킹 → 임베딩 → 질문하면 관련 청크로 답변 + **출처 표시** | 완료 |
+| 2 | 메타데이터(회사/직무/근무지/마감일/경력)를 붙여 **필터 검색** | 완료 |
 | 3 | BM25 하이브리드 + 크로스인코더 리랭킹 (상위 20 → 5) | 예정 |
 | 4 | PDF/HTML/JSON 멀티 소스 (컴앤휴먼 요구사항) | 예정 |
 
@@ -28,8 +28,15 @@ LangChain 개념 학습용 RAG 프로젝트. 소스는 GitHub, 학습 내용은 
 
 - **Claude Opus 5는 `temperature`/`top_p`를 받지 않는다 (400 에러).** LangChain 예제에 흔한
   `temperature=0`을 습관적으로 넣으면 터진다. `chain.py:get_llm()` 참고.
-- **Chroma 메타데이터는 str/int/float/bool만 허용.** YAML이 `keywords: [A, B]`를 list로,
-  `posted_at: 2026-08-28`을 date 객체로 파싱하므로 `loader.py:_scalarize()`로 평탄화한다.
+- **Chroma 메타데이터 타입 규칙은 버전을 타므로 실측할 것.** chromadb 1.5.9 기준으로
+  동종 리스트(`["A", "B"]`)는 **허용**되고, 거부되는 건 `date` 객체와 `None`이다.
+  YAML이 `posted_at: 2026-08-28`을 date로 파싱하므로 `loader.py:_scalarize()`는 여전히 필요하다.
+  2단계의 `job_categories`/`keywords`는 리스트 그대로 저장한다.
+- **Chroma `where` 절에 부분 문자열 매칭이 없다.** `$contains`는 리스트 필드의 원소
+  정확 일치로만 걸리고(`$contains "백엔드"`는 `"백엔드·서버개발"`을 못 찾는다), 문자열
+  필드에는 아예 안 걸린다. `$gte`/`$lte`는 숫자 전용이다. 그래서 색인 시점에
+  `location_city`/`location_district`/`expires_at_num`을 미리 쪼개 두고, 어휘 해석은
+  `filters.py`가 파이썬에서 한다.
 - **frontmatter 키는 `source:`가 아니라 `site:`.** `TextLoader`가 `metadata["source"]`에
   파일 경로를 넣기 때문에 이름이 충돌한다.
 - **`TextLoader`에 `encoding="utf-8"` 필수.** Windows에서 생략하면 cp949로 읽다 한글이 깨진다.
@@ -69,8 +76,9 @@ LangChain 개념 학습용 RAG 프로젝트. 소스는 GitHub, 학습 내용은 
 ## 모듈 경계
 
 ```
-loader.py   ① 로드 + frontmatter → metadata 승격
+loader.py   ① 로드 + frontmatter → metadata 승격 + 필터용 파생 필드
 ingest.py   ② 청킹 ③ 임베딩·저장  (오프라인, 1회성)
+filters.py  사람 말 → Chroma where 절  (2단계에서 추가)
 chain.py    ④ 검색 ⑤ 프롬프트 ⑥ 생성 ⑦ LCEL 조립  (온라인, 질문마다)
 config.py   단계가 바뀌며 변하는 값은 전부 여기
 ```
