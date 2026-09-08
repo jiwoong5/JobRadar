@@ -18,7 +18,13 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import Runnable, RunnableParallel, RunnablePassthrough
 
-from jobradar.config import CHAT_MODEL, MAX_TOKENS, TOP_K
+from jobradar.config import (
+    CANDIDATE_K,
+    CHAT_MODEL,
+    FINAL_K,
+    MAX_TOKENS,
+    TOP_K,
+)
 from jobradar.ingest import load_vectorstore
 
 SYSTEM_PROMPT = """당신은 채용 공고 검색 어시스턴트입니다.
@@ -72,17 +78,40 @@ def get_llm() -> ChatAnthropic:
     return ChatAnthropic(model=CHAT_MODEL, max_tokens=MAX_TOKENS)
 
 
-def build_chain(k: int = TOP_K, where: dict | None = None) -> Runnable:
-    """질문(str) -> {question, context, answer} 를 돌려주는 RAG 체인.
+def build_retriever(
+    k: int | None = None, where: dict | None = None, hybrid: bool = True
+) -> Runnable:
+    """검색기만 따로 만듭니다. 체인의 나머지는 이 반환값의 종류를 몰라도 됩니다.
 
     2단계: `where`를 주면 Chroma가 **벡터를 훑기 전에** 후보를 줄입니다
     (사전 필터링). 검색 후 파이썬에서 거르는 방식과 달리 k개를 온전히 채웁니다.
+
+    3단계: `hybrid=True`면 벡터 검색과 BM25를 함께 돌려 RRF로 합칩니다.
     """
-    search_kwargs: dict = {"k": k}
+    vectorstore = load_vectorstore()
+
+    if hybrid:
+        from jobradar.retrieval import HybridRetriever
+
+        return HybridRetriever(
+            vectorstore=vectorstore,
+            where=where,
+            candidate_k=CANDIDATE_K,
+            final_k=k or FINAL_K,
+        )
+
+    search_kwargs: dict = {"k": k or TOP_K}
     if where:
         # langchain_chroma는 이 값을 그대로 Chroma의 where 절로 넘깁니다.
         search_kwargs["filter"] = where
-    retriever = load_vectorstore().as_retriever(search_kwargs=search_kwargs)
+    return vectorstore.as_retriever(search_kwargs=search_kwargs)
+
+
+def build_chain(
+    k: int | None = None, where: dict | None = None, hybrid: bool = True
+) -> Runnable:
+    """질문(str) -> {question, context, answer} 를 돌려주는 RAG 체인."""
+    retriever = build_retriever(k=k, where=where, hybrid=hybrid)
 
     # 검색된 Document 를 프롬프트 변수로 변환하는 작은 체인.
     # dict 리터럴은 LCEL 에서 자동으로 RunnableParallel 로 바뀝니다.
@@ -102,5 +131,10 @@ def build_chain(k: int = TOP_K, where: dict | None = None) -> Runnable:
     ) | RunnablePassthrough.assign(answer=answer_chain)
 
 
-def ask(question: str, k: int = TOP_K, where: dict | None = None) -> dict:
-    return build_chain(k=k, where=where).invoke(question)
+def ask(
+    question: str,
+    k: int | None = None,
+    where: dict | None = None,
+    hybrid: bool = True,
+) -> dict:
+    return build_chain(k=k, where=where, hybrid=hybrid).invoke(question)

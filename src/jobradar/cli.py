@@ -13,7 +13,14 @@ import json
 import os
 import sys
 
-from jobradar.config import CHUNK_OVERLAP, CHUNK_SIZE, DATA_DIR, STORAGE_DIR, TOP_K
+from jobradar.config import (
+    CHUNK_OVERLAP,
+    CHUNK_SIZE,
+    DATA_DIR,
+    FINAL_K,
+    STORAGE_DIR,
+    TOP_K,
+)
 
 
 def _require_keys(*names: str) -> None:
@@ -63,6 +70,40 @@ def _parse_date_arg(text: str | None) -> int | None:
     return int(parts[0]) * 10000 + int(parts[1]) * 100 + int(parts[2])
 
 
+def _print_ranking(question: str, where: dict | None, k: int | None) -> None:
+    """벡터 / BM25 / RRF 세 순위를 나란히 보여줍니다.
+
+    하이브리드의 효과는 최종 목록만 봐서는 보이지 않습니다. 어느 검색기가
+    무엇을 건졌고 융합이 순위를 어떻게 바꿨는지 비교해야 드러납니다.
+    """
+    from jobradar.config import CANDIDATE_K
+    from jobradar.ingest import load_vectorstore
+    from jobradar.retrieval import bm25_search, fetch_documents
+
+    vs = load_vectorstore()
+    vector_hits = vs.similarity_search(question, k=CANDIDATE_K, filter=where or None)
+    bm25_hits = bm25_search(fetch_documents(vs, where), question, CANDIDATE_K)
+
+    from jobradar.chain import build_retriever
+
+    fused = build_retriever(k=k, where=where, hybrid=True).invoke(question)
+
+    def label(doc) -> str:
+        return doc.metadata.get("source", "?").replace("job_", "#").replace(".txt", "")[:26]
+
+    print("\n" + "-" * 70)
+    print(f"검색 비교 (후보 {CANDIDATE_K} → 최종 {len(fused)})")
+    print("-" * 70)
+    print(f"{'벡터':<28}{'BM25':<28}{'RRF 융합'}")
+    for i in range(max(len(fused), 3)):
+        a = label(vector_hits[i]) if i < len(vector_hits) else ""
+        b = label(bm25_hits[i]) if i < len(bm25_hits) else "-"
+        c = label(fused[i]) if i < len(fused) else "-"
+        print(f"{i + 1}. {a:<25}{i + 1}. {b:<25}{i + 1}. {c}")
+    if not bm25_hits:
+        print("  * BM25 매칭 0건 — 질의어가 본문에 없어 벡터 검색만으로 결정됨")
+
+
 def cmd_ask(args: argparse.Namespace) -> int:
     _require_keys("OPENAI_API_KEY", "ANTHROPIC_API_KEY")
     from jobradar.chain import ask
@@ -97,7 +138,10 @@ def cmd_ask(args: argparse.Namespace) -> int:
     if args.show_filter:
         print(f"where: {json.dumps(spec.where, ensure_ascii=False)}")
 
-    result = ask(args.question, k=args.k, where=spec.where)
+    if args.show_ranking and args.hybrid:
+        _print_ranking(args.question, spec.where, args.k)
+
+    result = ask(args.question, k=args.k, where=spec.where, hybrid=args.hybrid)
 
     print("\n" + "=" * 70)
     print(f"Q. {args.question}")
@@ -144,7 +188,12 @@ def main(argv: list[str] | None = None) -> int:
 
     p_ask = sub.add_parser("ask", help="질문하고 출처와 함께 답변 받기")
     p_ask.add_argument("question", help="질문 (예: \"Python 쓰는 곳 어디야?\")")
-    p_ask.add_argument("-k", type=int, default=TOP_K, help=f"검색할 청크 수 (기본 {TOP_K})")
+    # 기본값을 None으로 두어야 config가 결정합니다.
+    # 하이브리드면 FINAL_K(5), 벡터 단독이면 TOP_K(4).
+    p_ask.add_argument(
+        "-k", type=int, default=None,
+        help=f"프롬프트에 넣을 최종 청크 수 (하이브리드 {FINAL_K}, 벡터단독 {TOP_K})",
+    )
     p_ask.add_argument("--show-chunks", action="store_true", help="청크 본문 미리보기 출력")
 
     # --- 2단계: 메타데이터 필터 (회사 / 직무 / 근무지 / 마감일 / 경력) ---
@@ -165,6 +214,17 @@ def main(argv: list[str] | None = None) -> int:
     remote.add_argument("--onsite", dest="remote", action="store_false",
                         help="재택이 아닌 공고만")
     f.add_argument("--show-filter", action="store_true", help="생성된 where 절을 출력")
+
+    # --- 3단계: 하이브리드 검색 ---
+    h = p_ask.add_argument_group("검색 방식")
+    h.add_argument(
+        "--no-hybrid", dest="hybrid", action="store_false", default=True,
+        help="BM25를 끄고 벡터 검색만 사용 (1·2단계와 동일)",
+    )
+    h.add_argument(
+        "--show-ranking", action="store_true",
+        help="벡터/BM25/RRF 각각의 순위를 비교 출력",
+    )
 
     p_ask.set_defaults(func=cmd_ask)
 

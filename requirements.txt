@@ -15,6 +15,9 @@ langchain-openai>=0.3.0,<0.4        # 임베딩 (text-embedding-3-small)
 langchain-chroma>=0.2.0,<0.3
 chromadb>=0.5.0,<2
 
+# --- 검색 (3단계) ---
+rank_bm25>=0.2.2                    # BM25 키워드 검색 (순수 파이썬, torch 불필요)
+
 # --- 유틸 ---
 python-dotenv>=1.0
 PyYAML>=6.0

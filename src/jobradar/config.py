@@ -33,4 +33,17 @@ CHUNK_SIZE = int(os.getenv("JOBRADAR_CHUNK_SIZE", "800"))
 CHUNK_OVERLAP = int(os.getenv("JOBRADAR_CHUNK_OVERLAP", "120"))
 
 # --- 검색 ---
+# 1·2단계(벡터 단독)에서 쓰는 값입니다.
 TOP_K = int(os.getenv("JOBRADAR_TOP_K", "4"))
+
+# --- 3단계: 하이브리드 검색 ---
+# "넓게 20개 건진 뒤 정밀하게 5개로 줄인다"는 2단 구성입니다.
+# 싼 검색으로 재현율을 확보하고, 비싼 재순위로 정밀도를 확보합니다.
+CANDIDATE_K = int(os.getenv("JOBRADAR_CANDIDATE_K", "20"))
+FINAL_K = int(os.getenv("JOBRADAR_FINAL_K", "5"))
+
+# RRF: 점수 스케일이 다른 두 랭킹을 등수만으로 합칩니다. 60은 원 논문의 관행값으로,
+# 상위권의 등수 차이를 완만하게 만들어 한쪽 검색기가 독주하는 것을 막습니다.
+RRF_K = int(os.getenv("JOBRADAR_RRF_K", "60"))
+VECTOR_WEIGHT = float(os.getenv("JOBRADAR_VECTOR_WEIGHT", "1.0"))
+BM25_WEIGHT = float(os.getenv("JOBRADAR_BM25_WEIGHT", "1.0"))
