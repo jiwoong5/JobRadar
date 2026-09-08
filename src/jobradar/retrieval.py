@@ -1,4 +1,11 @@
-"""3단계 전반부: BM25 키워드 검색 + 벡터 검색을 RRF로 융합.
+"""3단계: 하이브리드 검색(BM25 + 벡터) → RRF 융합 → 크로스인코더 리랭킹.
+
+    싼 검색 두 갈래로 넓게 20개  →  RRF로 합침  →  비싼 리랭커로 5개
+    ──── 재현율 ────                              ──── 정밀도 ────
+
+리랭킹 자체는 `rerank.py`에 있습니다. 이 파일은 그 앞단(검색과 융합)을 맡고,
+`HybridRetriever`가 둘을 이어 붙입니다.
+
 
 배우는 개념
 -----------
@@ -40,7 +47,15 @@ from langchain_core.retrievers import BaseRetriever
 from pydantic import ConfigDict, Field
 from rank_bm25 import BM25Okapi
 
-from jobradar.config import BM25_WEIGHT, CANDIDATE_K, FINAL_K, RRF_K, VECTOR_WEIGHT
+from jobradar.config import (
+    BM25_WEIGHT,
+    CANDIDATE_K,
+    FINAL_K,
+    RERANK_ENABLED,
+    RERANK_MIN_SCORE,
+    RRF_K,
+    VECTOR_WEIGHT,
+)
 
 # 영문·숫자·기호가 붙은 기술 용어(C#, .NET, MS-SQL)와 한글 덩어리를 따로 잡습니다.
 # '-'는 토큰 문자에 넣지 않았습니다. "MS-SQL"을 ["ms","sql"]로 쪼개 두면
@@ -62,6 +77,7 @@ _STOPWORDS = frozenset(
     있어 있나 있는 있을 없어 없나 하는 해줘 알려줘 알려 주는 쓰는 다루는 찾는
     곳 자리 것 등 및 그리고 또는 좀 지금 요즘 정도
     지원 채용 공고 모집 회사 업무 담당 경험 운영 관련 가능 우대 자격 요건 조건
+    뽑는 뽑아 뽑나 뽑을 구해 구함 원해 필요 사람 인재 신규 상시 경험자 경력자 지원자
     """.split()
 )
 
@@ -77,11 +93,17 @@ def tokenize(text: str) -> list[str]:
     (글자 2-gram으로 부분 일치를 흉내 내 봤지만 노이즈만 늘어 걷어냈습니다.
      위 _STOPWORDS 주석의 실측을 참고하세요.)
     """
-    return [
-        token
-        for token in (raw.lower() for raw in _TOKEN_RE.findall(text or ""))
-        if token not in _STOPWORDS
-    ]
+    tokens = []
+    for raw in _TOKEN_RE.findall(text or ""):
+        token = raw.lower()
+        if token in _STOPWORDS:
+            continue
+        # 한 글자 한글은 대부분 조사·의존명사("데", "곳", "수")입니다.
+        # 내용어가 아니면서 문서에 흔히 있어 점수만 흐립니다.
+        if len(token) == 1 and "가" <= token <= "힣":
+            continue
+        tokens.append(token)
+    return tokens
 
 
 def searchable_text(doc: Document) -> str:
@@ -181,29 +203,45 @@ class HybridRetriever(BaseRetriever):
     rrf_k: int = RRF_K
     vector_weight: float = VECTOR_WEIGHT
     bm25_weight: float = BM25_WEIGHT
+    rerank_enabled: bool = RERANK_ENABLED
+    min_score: float = RERANK_MIN_SCORE
     trace: dict = Field(default_factory=dict)
 
     def _get_relevant_documents(
         self, query: str, *, run_manager: CallbackManagerForRetrieverRun | None = None
     ) -> list[Document]:
+        # 1단: 싼 검색 두 갈래로 넓게 건진다 (재현율)
         vector_hits = self.vectorstore.similarity_search(
             query, k=self.candidate_k, filter=self.where or None
         )
         bm25_hits = bm25_search(
             fetch_documents(self.vectorstore, self.where), query, self.candidate_k
         )
-
         fused = rrf_fuse(
             [(vector_hits, self.vector_weight), (bm25_hits, self.bm25_weight)],
             rrf_k=self.rrf_k,
         )
+        candidates = [doc for doc, _ in fused[: self.candidate_k]]
 
-        # 어느 검색기가 무엇을 건졌는지 남겨 둡니다. 하이브리드의 효과는
-        # 최종 목록만 봐서는 안 보이고, 두 갈래를 비교해야 드러납니다.
+        # 2단: 비싼 크로스인코더로 정밀하게 줄인다 (정밀도)
+        reranked: list[tuple[Document, float]] = []
+        if self.rerank_enabled and candidates:
+            from jobradar.rerank import rerank
+
+            reranked = rerank(
+                query, candidates, self.final_k, min_score=self.min_score
+            )
+            final = [doc for doc, _ in reranked]
+        else:
+            final = candidates[: self.final_k]
+
+        # 어느 단계가 순위를 어떻게 바꿨는지 남겨 둡니다. 하이브리드와 리랭킹의
+        # 효과는 최종 목록만 봐서는 안 보이고, 단계별로 비교해야 드러납니다.
         self.trace.clear()
         self.trace.update(
             vector=[_key(d) for d in vector_hits],
             bm25=[_key(d) for d in bm25_hits],
             fused=[(_key(d), s) for d, s in fused],
+            reranked=[(_key(d), s) for d, s in reranked],
         )
-        return [doc for doc, _ in fused[: self.final_k]]
+        return final

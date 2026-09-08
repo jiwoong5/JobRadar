@@ -60,6 +60,25 @@ python -m jobradar ask "요약해줘" --category 백엔드 --onsite --show-filte
 | `--deadline-before` | 이 날짜까지 마감 | `--deadline-before 2026-09-20` |
 | `--show-filter` | 생성된 Chroma `where` 절 출력 | |
 
+### 검색 방식 (3단계)
+
+기본은 **하이브리드 + 리랭킹**입니다. 단계를 꺼 가며 비교할 수 있습니다.
+
+```bash
+python -m jobradar ask "MS-SQL 다루는 자리 있어?" --show-ranking   # 단계별 순위 비교
+python -m jobradar ask "..." --no-rerank      # RRF까지만 (크로스인코더 끄기)
+python -m jobradar ask "..." --no-hybrid      # 벡터 검색만 (1·2단계와 동일)
+```
+
+```
+벡터 검색 20건 ─┐
+                ├─ RRF 융합 ─→ 상위 20 ─→ 크로스인코더 ─→ 최종 5건 ─→ LLM
+BM25 검색 20건 ─┘
+   재현율 확보                              정밀도 확보
+```
+
+첫 실행 때 리랭커 모델(약 1.1GB)을 내려받아 `~/.cache/huggingface`에 캐시합니다.
+
 ## 파이프라인
 
 ```
@@ -112,7 +131,8 @@ expires_at: 2026-10-15
 
 - [x] **1단계** 청킹 + 임베딩 + 출처 표시 Q&A
 - [x] **2단계** 메타데이터 필터 검색 (`부산 + 신입`)
-- [ ] **3단계** BM25 하이브리드 + 크로스인코더 리랭킹
+- [x] **3단계** BM25 하이브리드 + 크로스인코더 리랭킹
+- [ ] **3.5단계** 청킹 재조정 (`chunk_size=800`이라 한 번도 쪼개지지 않음)
 - [ ] **4단계** PDF / HTML / JSON 멀티 소스
 
 ## 삽질 기록

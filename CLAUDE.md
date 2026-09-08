@@ -8,8 +8,22 @@ LangChain 개념 학습용 RAG 프로젝트. 소스는 GitHub, 학습 내용은 
 |---|---|---|
 | 1 | 텍스트 공고 10개 → 청킹 → 임베딩 → 질문하면 관련 청크로 답변 + **출처 표시** | 완료 |
 | 2 | 메타데이터(회사/직무/근무지/마감일/경력)를 붙여 **필터 검색** | 완료 |
-| 3 | BM25 하이브리드 + 크로스인코더 리랭킹 (상위 20 → 5) | 예정 |
+| 3 | BM25 하이브리드 + 크로스인코더 리랭킹 (상위 20 → 5) | 완료 |
+| 3.5 | **청킹 재조정** — 아래 "미뤄둔 문제" 참고 | 예정 |
 | 4 | PDF/HTML/JSON 멀티 소스 (컴앤휴먼 요구사항) | 예정 |
+
+### 미뤄둔 문제 (3.5단계)
+
+**청킹이 한 번도 동작한 적이 없다.** 실측 본문 길이가 610~799자인데 `chunk_size=800`이라
+스플리터가 단 한 번도 쪼개지 않았다. 공고 10건 → 청크 10건, 즉 `chunk_overlap`도
+`separators`의 `"\n## "` 우선순위도 결과에 아무 영향을 주지 못했다.
+
+이게 3단계에도 영향을 준다. 청크가 10개뿐이라 **"상위 20 → 5"의 20 단계가 no-op**이다
+(후보 20 = 코퍼스 전체). 리랭킹은 순서를 바꿀 뿐 걸러낼 것이 없다.
+
+`chunk_size=350`으로 낮추면 31청크가 되어 퍼널이 비로소 의미를 갖는다(실측:
+800→10, 500→20, 400→24, 350→31, 300→37, 200→61이며 200에서는 7자짜리 파편이 생긴다).
+3단계를 끝낸 뒤 손댄다.
 
 **각 단계의 범위를 넘지 말 것.** 단계 구분 자체가 학습 장치다.
 
@@ -20,7 +34,9 @@ LangChain 개념 학습용 RAG 프로젝트. 소스는 GitHub, 학습 내용은 
 | 답변 LLM | `claude-opus-5` (`langchain-anthropic`) | 한국어 품질 |
 | 임베딩 | OpenAI `text-embedding-3-small` | **Anthropic은 임베딩 API가 없음**. 설치 가볍고(torch 불필요) 한국어 충분 |
 | 벡터스토어 | Chroma | 2단계 메타데이터 필터(`where=`)를 네이티브 지원. FAISS는 그게 없어 갈아엎어야 함 |
-| 청킹 | `RecursiveCharacterTextSplitter` 800/120 | 공고 1건 ≈ 1,800~2,100자 → 공고당 3~4청크 |
+| 청킹 | `RecursiveCharacterTextSplitter` 800/120 | 공고 1건 ≈ 1,800~2,100자 → 공고당 3~4청크 (**실측은 610~799자. 3.5단계 참고**) |
+| 키워드 검색 | `rank_bm25` (BM25Okapi) | 8.6KB 순수 파이썬. Chroma 내장 FTS5도 후보였으나 토크나이저를 직접 통제하려고 선택 |
+| 리랭커 | `Dongjin-kr/ko-reranker` | bge-reranker-large를 한국어로 파인튜닝. `ms-marco` 계열은 영어 전용이라 한국어에 무력 |
 
 키 2개 필요: `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`.
 
@@ -40,6 +56,13 @@ LangChain 개념 학습용 RAG 프로젝트. 소스는 GitHub, 학습 내용은 
 - **frontmatter 키는 `source:`가 아니라 `site:`.** `TextLoader`가 `metadata["source"]`에
   파일 경로를 넣기 때문에 이름이 충돌한다.
 - **`TextLoader`에 `encoding="utf-8"` 필수.** Windows에서 생략하면 cp949로 읽다 한글이 깨진다.
+- **소규모 코퍼스에서 BM25는 기능어에 낚인다.** 문서가 10건뿐이라 우연히 한 문서에만
+  있는 조사·의문사의 IDF가 전문용어를 압도한다. 실측: "Python 쓰는 곳 어디야?"에서
+  #9(Node.js)가 1.86점 1위였는데 전부 '어디' 토큰 점수였다(python은 0.71).
+  `retrieval.py`의 불용어 + 한 글자 한글 제거로 막는다.
+- **`CrossEncoder`는 라벨이 1개면 Sigmoid를 기본 적용한다.** 즉 `predict()` 결과는
+  raw logit이 아니라 **0~1**이다(로짓 -2.67 → 0.065). 임계값을 쓸 거라면 이 사실을
+  전제로 실측해서 정할 것.
 
 ## 데이터 규약
 
@@ -79,6 +102,8 @@ LangChain 개념 학습용 RAG 프로젝트. 소스는 GitHub, 학습 내용은 
 loader.py   ① 로드 + frontmatter → metadata 승격 + 필터용 파생 필드
 ingest.py   ② 청킹 ③ 임베딩·저장  (오프라인, 1회성)
 filters.py  사람 말 → Chroma where 절  (2단계에서 추가)
+retrieval.py BM25 + 벡터 → RRF 융합, HybridRetriever  (3단계에서 추가)
+rerank.py   크로스인코더 재순위  (3단계에서 추가)
 chain.py    ④ 검색 ⑤ 프롬프트 ⑥ 생성 ⑦ LCEL 조립  (온라인, 질문마다)
 config.py   단계가 바뀌며 변하는 값은 전부 여기
 ```

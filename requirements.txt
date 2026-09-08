@@ -16,7 +16,10 @@ langchain-chroma>=0.2.0,<0.3
 chromadb>=0.5.0,<2
 
 # --- 검색 (3단계) ---
-rank_bm25>=0.2.2                    # BM25 키워드 검색 (순수 파이썬, torch 불필요)
+rank_bm25>=0.2.2                    # BM25 키워드 검색 (순수 파이썬)
+sentence-transformers>=3.0          # 크로스인코더 리랭킹
+# torch는 CPU 전용 휠을 별도 인덱스에서 설치하세요 (기본 휠은 CUDA가 붙어 큽니다):
+#   pip install torch --index-url https://download.pytorch.org/whl/cpu
 
 # --- 유틸 ---
 python-dotenv>=1.0

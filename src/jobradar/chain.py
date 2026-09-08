@@ -23,6 +23,7 @@ from jobradar.config import (
     CHAT_MODEL,
     FINAL_K,
     MAX_TOKENS,
+    RERANK_ENABLED,
     TOP_K,
 )
 from jobradar.ingest import load_vectorstore
@@ -79,7 +80,11 @@ def get_llm() -> ChatAnthropic:
 
 
 def build_retriever(
-    k: int | None = None, where: dict | None = None, hybrid: bool = True
+    k: int | None = None,
+    where: dict | None = None,
+    hybrid: bool = True,
+    rerank: bool = True,
+    min_score: float | None = None,
 ) -> Runnable:
     """검색기만 따로 만듭니다. 체인의 나머지는 이 반환값의 종류를 몰라도 됩니다.
 
@@ -98,6 +103,8 @@ def build_retriever(
             where=where,
             candidate_k=CANDIDATE_K,
             final_k=k or FINAL_K,
+            rerank_enabled=rerank and RERANK_ENABLED,
+            **({} if min_score is None else {"min_score": min_score}),
         )
 
     search_kwargs: dict = {"k": k or TOP_K}
@@ -108,10 +115,16 @@ def build_retriever(
 
 
 def build_chain(
-    k: int | None = None, where: dict | None = None, hybrid: bool = True
+    k: int | None = None,
+    where: dict | None = None,
+    hybrid: bool = True,
+    rerank: bool = True,
+    min_score: float | None = None,
 ) -> Runnable:
     """질문(str) -> {question, context, answer} 를 돌려주는 RAG 체인."""
-    retriever = build_retriever(k=k, where=where, hybrid=hybrid)
+    retriever = build_retriever(
+        k=k, where=where, hybrid=hybrid, rerank=rerank, min_score=min_score
+    )
 
     # 검색된 Document 를 프롬프트 변수로 변환하는 작은 체인.
     # dict 리터럴은 LCEL 에서 자동으로 RunnableParallel 로 바뀝니다.
@@ -136,5 +149,9 @@ def ask(
     k: int | None = None,
     where: dict | None = None,
     hybrid: bool = True,
+    rerank: bool = True,
+    min_score: float | None = None,
 ) -> dict:
-    return build_chain(k=k, where=where, hybrid=hybrid).invoke(question)
+    return build_chain(
+        k=k, where=where, hybrid=hybrid, rerank=rerank, min_score=min_score
+    ).invoke(question)

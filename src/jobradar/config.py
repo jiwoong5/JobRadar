@@ -47,3 +47,14 @@ FINAL_K = int(os.getenv("JOBRADAR_FINAL_K", "5"))
 RRF_K = int(os.getenv("JOBRADAR_RRF_K", "60"))
 VECTOR_WEIGHT = float(os.getenv("JOBRADAR_VECTOR_WEIGHT", "1.0"))
 BM25_WEIGHT = float(os.getenv("JOBRADAR_BM25_WEIGHT", "1.0"))
+
+# --- 3단계: 크로스인코더 리랭킹 ---
+# 한국어로 파인튜닝된 리랭커. bge-reranker-large 계열이라 첫 실행 시
+# 약 1.1GB를 내려받아 캐시(~/.cache/huggingface)에 둡니다.
+RERANK_MODEL = os.getenv("JOBRADAR_RERANK_MODEL", "Dongjin-kr/ko-reranker")
+RERANK_ENABLED = os.getenv("JOBRADAR_RERANK", "1") not in ("0", "false", "False")
+# CPU에서 한 번에 넘길 (질문, 문서) 쌍의 수.
+RERANK_BATCH = int(os.getenv("JOBRADAR_RERANK_BATCH", "16"))
+# 리랭커 점수(0~1) 하한. 0.0은 "거르지 않음". 무관한 문서는 0에 바싹 붙으므로
+# 0.01 정도만 줘도 노이즈가 걸러지지만, 값은 모델·데이터마다 다르니 실측할 것.
+RERANK_MIN_SCORE = float(os.getenv("JOBRADAR_RERANK_MIN_SCORE", "0.0"))

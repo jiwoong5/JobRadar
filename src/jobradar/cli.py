@@ -70,38 +70,58 @@ def _parse_date_arg(text: str | None) -> int | None:
     return int(parts[0]) * 10000 + int(parts[1]) * 100 + int(parts[2])
 
 
-def _print_ranking(question: str, where: dict | None, k: int | None) -> None:
-    """벡터 / BM25 / RRF 세 순위를 나란히 보여줍니다.
+def _print_ranking(
+    question: str, where: dict | None, k: int | None,
+    rerank: bool, min_score: float | None,
+) -> None:
+    """검색 단계별 순위를 나란히 보여줍니다.
 
-    하이브리드의 효과는 최종 목록만 봐서는 보이지 않습니다. 어느 검색기가
-    무엇을 건졌고 융합이 순위를 어떻게 바꿨는지 비교해야 드러납니다.
+    하이브리드와 리랭킹의 효과는 최종 목록만 봐서는 보이지 않습니다.
+    어느 검색기가 무엇을 건졌고 각 단계가 순위를 어떻게 바꿨는지 비교해야 드러납니다.
     """
     from jobradar.config import CANDIDATE_K
     from jobradar.ingest import load_vectorstore
-    from jobradar.retrieval import bm25_search, fetch_documents
+    from jobradar.retrieval import HybridRetriever, bm25_search, fetch_documents
 
     vs = load_vectorstore()
     vector_hits = vs.similarity_search(question, k=CANDIDATE_K, filter=where or None)
     bm25_hits = bm25_search(fetch_documents(vs, where), question, CANDIDATE_K)
 
-    from jobradar.chain import build_retriever
-
-    fused = build_retriever(k=k, where=where, hybrid=True).invoke(question)
+    kwargs = {} if min_score is None else {"min_score": min_score}
+    retriever = HybridRetriever(
+        vectorstore=vs, where=where, final_k=k or FINAL_K,
+        rerank_enabled=rerank, **kwargs,
+    )
+    final = retriever.invoke(question)
+    by_key = {}
+    for doc in vector_hits + bm25_hits + final:
+        by_key[f"{doc.metadata.get('source', '')}::{hash(doc.page_content)}"] = doc
+    fused_keys = [key for key, _ in retriever.trace.get("fused", [])]
+    rerank_scores = dict(retriever.trace.get("reranked", []))
 
     def label(doc) -> str:
-        return doc.metadata.get("source", "?").replace("job_", "#").replace(".txt", "")[:26]
+        return doc.metadata.get("source", "?").replace("job_", "#").replace(".txt", "")[:24]
 
-    print("\n" + "-" * 70)
-    print(f"검색 비교 (후보 {CANDIDATE_K} → 최종 {len(fused)})")
-    print("-" * 70)
-    print(f"{'벡터':<28}{'BM25':<28}{'RRF 융합'}")
-    for i in range(max(len(fused), 3)):
-        a = label(vector_hits[i]) if i < len(vector_hits) else ""
+    stage = "리랭킹(교차)" if rerank else "RRF 상위"
+    print("\n" + "-" * 78)
+    print(f"검색 단계 비교 (후보 {CANDIDATE_K} → 최종 {len(final)})")
+    print("-" * 78)
+    print(f"{'벡터':<26}{'BM25':<26}{'RRF 융합':<26}{stage}")
+    for i in range(max(len(final), 3)):
+        a = label(vector_hits[i]) if i < len(vector_hits) else "-"
         b = label(bm25_hits[i]) if i < len(bm25_hits) else "-"
-        c = label(fused[i]) if i < len(fused) else "-"
-        print(f"{i + 1}. {a:<25}{i + 1}. {b:<25}{i + 1}. {c}")
+        c = label(by_key[fused_keys[i]]) if i < len(fused_keys) else "-"
+        if i < len(final):
+            key = f"{final[i].metadata.get('source', '')}::{hash(final[i].page_content)}"
+            score = rerank_scores.get(key)
+            d = label(final[i]) + (f" {score:+.2f}" if score is not None else "")
+        else:
+            d = "-"
+        print(f"{i + 1}.{a:<24}{i + 1}.{b:<24}{i + 1}.{c:<24}{i + 1}.{d}")
     if not bm25_hits:
         print("  * BM25 매칭 0건 — 질의어가 본문에 없어 벡터 검색만으로 결정됨")
+    if rerank:
+        print("  * 리랭킹 점수는 0~1 (CrossEncoder가 Sigmoid를 씌움). 무관한 문서는 0에 붙음")
 
 
 def cmd_ask(args: argparse.Namespace) -> int:
@@ -139,9 +159,12 @@ def cmd_ask(args: argparse.Namespace) -> int:
         print(f"where: {json.dumps(spec.where, ensure_ascii=False)}")
 
     if args.show_ranking and args.hybrid:
-        _print_ranking(args.question, spec.where, args.k)
+        _print_ranking(args.question, spec.where, args.k, args.rerank, args.min_score)
 
-    result = ask(args.question, k=args.k, where=spec.where, hybrid=args.hybrid)
+    result = ask(
+        args.question, k=args.k, where=spec.where,
+        hybrid=args.hybrid, rerank=args.rerank, min_score=args.min_score,
+    )
 
     print("\n" + "=" * 70)
     print(f"Q. {args.question}")
@@ -222,8 +245,16 @@ def main(argv: list[str] | None = None) -> int:
         help="BM25를 끄고 벡터 검색만 사용 (1·2단계와 동일)",
     )
     h.add_argument(
+        "--no-rerank", dest="rerank", action="store_false", default=True,
+        help="크로스인코더 리랭킹을 끄고 RRF 순위를 그대로 사용",
+    )
+    h.add_argument(
+        "--min-score", type=float, default=None, metavar="X",
+        help="리랭커 점수(0~1)가 X 미만인 문서는 버림 (기본: 안 버림)",
+    )
+    h.add_argument(
         "--show-ranking", action="store_true",
-        help="벡터/BM25/RRF 각각의 순위를 비교 출력",
+        help="벡터/BM25/RRF/리랭킹 각 단계의 순위를 비교 출력",
     )
 
     p_ask.set_defaults(func=cmd_ask)
